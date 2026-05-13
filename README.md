@@ -94,6 +94,19 @@ Each entry includes a header with the week date range, fiscal year info, and day
 ### Friday
 ```
 
+## Claude Code Integration
+
+A `/summarize-day` skill is included at `.claude/commands/summarize-day.md`. Run it from Claude Code to automatically populate today's log entry by pulling together activity from multiple sources:
+
+- **Claude Code session logs** — what you worked on across projects
+- **GitHub** — PRs merged today
+- **Jira** — tickets with status changes today
+- **Confluence** — pages you created or updated today
+
+After gathering activity, it writes a summary to today's log entry in a casual, first-person style, then opens the file for review before committing and pushing.
+
+> Jira and Confluence integration requires the [Atlassian MCP server](https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-servers/atlassian) to be configured.
+
 ## Requirements
 
 - Python 3.6+
