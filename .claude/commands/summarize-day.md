@@ -46,10 +46,10 @@ Note any pages created or updated, their titles and spaces.
 Run `./log.py` from `~/projects/sre/work-log` to create the entry if it doesn't exist. The output will include the file path (e.g. `Created entry: ...` or `Entry already exists: ...`) — use that path to open and append the summary under today's day heading.
 
 Write in the same casual, first-person style as existing entries. Guidelines based on past entries:
-- Short declarative sentences, no bullet points — flowing prose, like documenting your day to a colleague
-- Lead with what was done, add context only if it matters
+- Short declarative sentences, no bullet points, like documenting your day to a colleague
+- Lead with what was done, add context only if important
 - Name specific tools, people, and environments (stg, prod, etc.); be vague on volume ("a bunch of", "a few")
-- Vary how topics connect — "Also", "Plus", "After that", "Spent the rest of the day" — don't repeat the same connector
+- Vary wording on how topics connect — "Also", "Plus", "After that", "Spent the rest of the day" — avoid repitition 
 - It's fine to mention if something was painful, confusing, or took longer than expected
 - Honest uncertainty is fine — "Pretty sure", "I think", "Not sure why" feel natural here
 - Don't pad it out — a sentence or two is fine for a light day
