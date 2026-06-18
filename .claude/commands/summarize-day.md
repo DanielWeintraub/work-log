@@ -68,7 +68,24 @@ Before writing anything, present a numbered list of every distinct activity foun
 
 Ask the user which items to include. Wait for their response before proceeding.
 
-## Step 7: Write to the work log
+## Step 7: Offer to create Jira tickets for untracked work
+
+From the confirmed list, identify activities that have no associated Jira ticket — i.e., items tagged `[session]`, `[PR]`, or `[Confluence]` that don't reference a CORE-XXXX key.
+
+If any exist, list them and ask: "Any of these need a Jira ticket?" Wait for the user's response before proceeding.
+
+If the user wants tickets created, use `createJiraIssue` for each:
+- `cloudId`: `93c1a38e-41b0-4549-9bcb-7a3330a3361b`
+- `projectKey`: CORE
+- `issueTypeName`: Task
+- `assignee_account_id`: `6179978f20972200713455e1`
+- `contentFormat`: `adf` — description must be a proper ADF JSON document
+- `customfield_16588`: infer the type of work from context (Unplanned - Cross-Team Request, Unplanned - Reactive Maintenance, Planned - Engineering Roadmap, etc.)
+- Infer a concise summary and description from the activity context
+
+If no untracked activities exist, skip silently.
+
+## Step 8: Write to the work log
 
 If TARGET_DATE is today, run `./log.py` from `~/git/work-log` to create the entry if it doesn't exist.
 If TARGET_DATE is a past date, run `./log.py --date TARGET_DATE` from `~/git/work-log`.
