@@ -39,6 +39,26 @@ gh search prs --author @me --merged --merged-at "TARGET_DATE..TARGET_DATE" --lim
 
 Note any PRs merged.
 
+## Step 3b: Check PR reviews left on target date
+
+The search above only catches PRs you authored/merged — it misses reviews you left on other people's PRs. Get your GitHub login, then search for PRs with review activity touching TARGET_DATE:
+```
+gh api user --jq .login
+gh api "search/issues?q=type:pr+reviewed-by:@me+updated:TARGET_DATE" --jq '.items[] | .repository_url + " " + (.number|tostring)'
+```
+
+This search is noisy: `updated_at` reflects the PR's last update, not necessarily when you reviewed it — a PR you reviewed months or years ago can still match if something else touched it on TARGET_DATE. Do not trust it on its own. For each candidate PR, confirm you actually reviewed it on TARGET_DATE by checking the real review timestamps:
+```
+gh api repos/{owner}/{repo}/pulls/{number}/reviews --jq '.[] | select(.user.login=="YOUR_LOGIN" and (.submitted_at | startswith("TARGET_DATE"))) | {state, submitted_at, body}'
+```
+
+Discard any candidate with no matching review on TARGET_DATE. For ones that match, also pull your line comments from that date for context on what was actually flagged:
+```
+gh api repos/{owner}/{repo}/pulls/{number}/comments --jq '.[] | select(.user.login=="YOUR_LOGIN" and (.created_at | startswith("TARGET_DATE"))) | {path, body}'
+```
+
+Note the PR title, review state (APPROVED/COMMENTED/CHANGES_REQUESTED), review body, and any line-comment context — tag these `[PR review]`.
+
 ## Step 4: Check Jira activity on target date
 
 Use `searchJiraIssuesUsingJql` with JQL to find tickets whose status was changed by the current user on TARGET_DATE. Compute NEXT_DAY (TARGET_DATE + 1 day) and use:
@@ -64,7 +84,7 @@ For each page returned, call `getConfluencePage` to fetch its details and check 
 
 ## Step 6: Present options and confirm
 
-Before writing anything, present a numbered list of every distinct activity found across all sources — sessions, PRs, Jira, and Confluence. Group loosely by theme or ticket if there are natural clusters. For each item include the source (e.g. `[session]`, `[PR]`, `[Jira]`, `[Confluence]`) and a one-line description.
+Before writing anything, present a numbered list of every distinct activity found across all sources — sessions, PRs, PR reviews, Jira, and Confluence. Group loosely by theme or ticket if there are natural clusters. For each item include the source (e.g. `[session]`, `[PR]`, `[PR review]`, `[Jira]`, `[Confluence]`) and a one-line description.
 
 Ask the user which items to include. Wait for their response before proceeding.
 
