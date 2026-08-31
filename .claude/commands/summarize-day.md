@@ -6,7 +6,7 @@ If `$ARGUMENTS` is provided and non-empty, use it as the target date (format: YY
 
 Call this value TARGET_DATE throughout all steps below.
 
-## Step 1: Find sessions for target date
+## Step 1: Find candidate session files
 
 If TARGET_DATE is today, run:
 ```
@@ -21,9 +21,37 @@ find ~/.claude/projects/ -name "*.jsonl" -maxdepth 2 \
   2>/dev/null
 ```
 
-## Step 2: Read and summarize each session
+**This is a candidate list only, based on file mtime — it is not reliable on its own.** Claude Code session files are resumable and often span many days; a file can be touched (mtime bumped) on TARGET_DATE while almost all of its actual content — and sometimes *all* of it — belongs to earlier days. Never treat a file appearing here as proof that work happened on TARGET_DATE. Every file must be verified against its actual message timestamps in Step 2 before anything from it is included.
 
-For each file found, read it and extract what was worked on — look at user messages and assistant tool calls (file edits, bash commands, tool results) to understand the work. Group by project (derived from the directory name, e.g. `-Users-mcollins-projects-sre-chef` → `sre-chef`).
+## Step 2: Verify each candidate's actual dates, then summarize only TARGET_DATE content
+
+For each candidate file, first check which dates its messages actually fall on:
+```
+python3.14 -c "
+import json
+path = '<file>'
+dates = {}
+with open(path) as fh:
+    for line in fh:
+        try:
+            obj = json.loads(line)
+        except Exception:
+            continue
+        ts = obj.get('timestamp')
+        if ts:
+            d = ts[:10]
+            dates[d] = dates.get(d, 0) + 1
+for d in sorted(dates):
+    print(d, dates[d])
+"
+```
+
+- If TARGET_DATE has zero matching entries, **discard the file entirely** — the mtime was misleading (e.g. a resumed session with no real new content, or a metadata-only touch). Do not summarize anything from it.
+- If TARGET_DATE has some matching entries but the file also has entries from other days, only read and summarize the entries whose timestamp starts with TARGET_DATE. Ignore the rest, even if it's the bulk of the file — a long-running session's earlier days are out of scope for this run (they should already be reflected in that earlier day's log entry, or are a separate backfill question).
+
+When delegating file reads to a subagent (e.g. for large files), give it TARGET_DATE explicitly and instruct it to: (a) run the per-file date-count check above first, (b) state how many entries matched TARGET_DATE before summarizing anything, (c) summarize only those matching entries, and (d) report back "no activity on TARGET_DATE" rather than silently substituting nearby days' content if the count is zero. Do not just tell it "this session is from TARGET_DATE" — let it verify that independently, since the premise may be wrong.
+
+Group surviving activity by project (derived from the directory name, e.g. `-Users-mcollins-projects-sre-chef` → `sre-chef`).
 
 ## Step 3: Check GitHub PRs merged on target date
 
