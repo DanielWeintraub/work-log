@@ -51,6 +51,8 @@ for d in sorted(dates):
 
 When delegating file reads to a subagent (e.g. for large files), give it TARGET_DATE explicitly and instruct it to: (a) run the per-file date-count check above first, (b) state how many entries matched TARGET_DATE before summarizing anything, (c) summarize only those matching entries, and (d) report back "no activity on TARGET_DATE" rather than silently substituting nearby days' content if the count is zero. Do not just tell it "this session is from TARGET_DATE" — let it verify that independently, since the premise may be wrong.
 
+**Exclude runs of this skill itself.** A session in the `-Users-dweintraub-git-work-log` project directory whose content is itself an invocation of `/summarize-day` (i.e., it's this same command running, not real work) is not a work activity. Discard it entirely — do not carry it forward as a candidate, and do not present it in Step 6. Also tell any subagent reading such a file to flag this and stop rather than summarizing the run as if it were work.
+
 Group surviving activity by project (derived from the directory name, e.g. `-Users-mcollins-projects-sre-chef` → `sre-chef`).
 
 ## Step 3: Check GitHub PRs merged on target date
